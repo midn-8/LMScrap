@@ -38,25 +38,13 @@
     }
   };
 
-  const submit = (el) => {
-    const btn = document.querySelector(
-      'button[data-testid="send-button"], button[aria-label*="Send" i], button[aria-label*="Submit" i], button[type="submit"]'
-    );
-    if (btn && !btn.disabled && visible(btn)) { btn.click(); return true; }
-    const opts = { bubbles: true, cancelable: true, key: "Enter", code: "Enter", keyCode: 13, which: 13 };
-    el.dispatchEvent(new KeyboardEvent("keydown", opts));
-    el.dispatchEvent(new KeyboardEvent("keyup", opts));
-    return false;
-  };
-
+  // Fill only — the material rides along as an attached file, so we do NOT submit
+  // (sending before the user attaches it would be useless) and never inject the
+  // huge material text (that froze the editor). The composer gets a short prompt.
   const deadline = Date.now() + 25000;
   const tick = () => {
     const el = findComposer();
-    if (el) {
-      fill(el);
-      setTimeout(() => submit(el), 600); // let the app register the text before sending
-      return;
-    }
+    if (el) { fill(el); return; }
     if (Date.now() < deadline) setTimeout(tick, 400);
   };
   tick();

@@ -8,6 +8,10 @@ const AI = {
   chatgpt: "https://chatgpt.com/",
   gemini: "https://gemini.google.com/app",
 };
+// Short prompt auto-filled into the composer; the material goes as the attached file.
+const QUIZ_INSTRUCTION =
+  "Create a quiz (10 multiple-choice + 3 short-answer, with an answer key) and a set " +
+  "of flashcards (term → definition) from the attached course material (quiz_handoff.md).";
 
 let sessions = [], handoffText = "", courseTag = "";
 
@@ -89,11 +93,12 @@ document.querySelectorAll("[data-ai]").forEach((b) => (b.onclick = () => openAI(
 
 async function openAI(prov) {
   if (!handoffText) return;
-  // Queue it for the content script on the AI site, which fills + submits.
-  await chrome.storage.local.set({ pendingQuiz: { text: handoffText, provider: prov, ts: Date.now() } });
-  await copyText(handoffText); // backup: if autofill misses, Ctrl+V still works
+  await dlHandoff();                       // save quiz_handoff.md to attach
+  await copyText(QUIZ_INSTRUCTION);        // tiny prompt as clipboard backup
+  // Autofill the short prompt only — never the huge material (that freezes the editor).
+  await chrome.storage.local.set({ pendingQuiz: { text: QUIZ_INSTRUCTION, provider: prov, ts: Date.now() } });
   chrome.tabs.create({ url: AI[prov] });
-  status(`Opening ${prov} and auto-sending… (if it doesn't send, paste with Ctrl+V).`);
+  status(`Opened ${prov}: prompt filled. Attach the saved quiz_handoff.md, then send.`);
 }
 
 async function dlHandoff() {

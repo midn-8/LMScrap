@@ -24,9 +24,11 @@ dashboard's own API calls, borrows the bearer token, and calls the same API
 4. Pick outputs: **Slides (.pptx)**, **Slide text (.md)**, **Quiz handoff**.
 5. **Scrape selected** → files save under `Downloads/LMScrap/<course>/<NN_topic>/`.
 6. If **Quiz handoff** was on, a row appears: **Claude / ChatGPT / Gemini / Save .md**.
-   Clicking an AI opens it and auto-sends the combined material + a quiz/flashcard
-   prompt (clipboard backup, so Ctrl+V works if a site's auto-send misses). The
-   handoff persists, so you can reopen the popup later and resend without rescraping.
+   Clicking an AI saves `quiz_handoff.md`, opens the site, and auto-fills a short
+   quiz/flashcard prompt. Attach the saved file and send. (The material rides as a
+   file, not pasted text — a wall of text freezes the editor, and an extension can't
+   attach a file for you.) The handoff persists, so you can reopen the popup later
+   and resend without rescraping.
 
 If courses don't load, reload your lms.binus.ac.id tab, then reopen the popup.
 
