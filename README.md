@@ -1,7 +1,7 @@
 # LMScrap
 
 A Chrome extension that downloads course materials from
-[new BINUSMAYA](https://newbinusmaya.binus.ac.id): pick a **mata kuliah**, tick a
+[BINUSMAYA LMS](https://lms.binus.ac.id): pick a **mata kuliah**, tick a
 **range of sessions**, and it saves their files to `Downloads/LMScrap/`.
 
 It reuses your existing browser login — no password, no re-login. It watches the
@@ -16,20 +16,19 @@ dashboard's own API calls, borrows the bearer token, and calls the same API
 
 ## Use
 
-1. Open and **log in** to https://newbinusmaya.binus.ac.id — stay on the dashboard
-   a moment so the extension captures your token.
+1. Open and **log in** to https://lms.binus.ac.id — just loading the page lets the
+   extension capture your token (a content script hooks the app's API calls).
 2. Click the **LMScrap** toolbar icon.
 3. Choose a course, then either tick sessions or set a range (`from` / `to` →
    **Tick range**).
-4. **Scrape selected**. For each selected session you get, under
-   `Downloads/LMScrap/<course>/<NN_topic>/`:
-   - the original file (`.pptx`, `.pdf`, …)
-   - `<name>.md` — slide text pulled out of each `.pptx`
-   And one `Downloads/LMScrap/<course>/quiz_handoff.md` bundling all the extracted
-   text under a ready-to-use prompt — paste or upload it to an AI to get a quiz.
+4. Pick outputs: **Slides (.pptx)**, **Slide text (.md)**, **Quiz handoff**.
+5. **Scrape selected** → files save under `Downloads/LMScrap/<course>/<NN_topic>/`.
+6. If **Quiz handoff** was on, a row appears: **Claude / ChatGPT / Gemini / Save .md**.
+   Clicking an AI opens it and auto-sends the combined material + a quiz/flashcard
+   prompt (clipboard backup, so Ctrl+V works if a site's auto-send misses). The
+   handoff persists, so you can reopen the popup later and resend without rescraping.
 
-If courses don't load, refresh the BINUSMAYA dashboard tab (that re-fires the API
-call the token is captured from), then reopen the popup.
+If courses don't load, reload your lms.binus.ac.id tab, then reopen the popup.
 
 ## Notes
 

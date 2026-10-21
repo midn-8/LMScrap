@@ -74,18 +74,27 @@ const decodeXml = (s) => s
   .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 
 // A .pptx is a zip of XML; slide text lives in <a:t> runs in ppt/slides/slideN.xml.
+// Compacts for fewer tokens: collapses whitespace, drops 1-char noise, removes
+// lines repeated across many slides (template header/footer/title), skips empty slides.
 function pptxToMarkdown(bytes) {
   const files = fflate.unzipSync(bytes);
   const dec = new TextDecoder();
-  const slides = Object.keys(files)
+  const names = Object.keys(files)
     .filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n))
     .sort((a, b) => +a.match(/\d+/)[0] - +b.match(/\d+/)[0]);
-  return slides.map((n, i) => {
-    const xml = dec.decode(files[n]);
-    const texts = [...xml.matchAll(/<a:t>([\s\S]*?)<\/a:t>/g)]
-      .map((m) => decodeXml(m[1])).filter((t) => t.trim());
-    return `## Slide ${i + 1}\n\n${texts.join("\n") || "_(no text)_"}`;
-  }).join("\n\n");
+  const perSlide = names.map((n) =>
+    [...dec.decode(files[n]).matchAll(/<a:t>([\s\S]*?)<\/a:t>/g)]
+      .map((m) => decodeXml(m[1]).replace(/\s+/g, " ").trim())
+      .filter((t) => t.length > 1));
+  const freq = {};
+  for (const lines of perSlide) for (const l of new Set(lines)) freq[l] = (freq[l] || 0) + 1;
+  const boiler = Math.max(3, Math.ceil(perSlide.length * 0.4));
+  const out = [];
+  perSlide.forEach((lines, i) => {
+    const kept = lines.filter((l) => freq[l] < boiler);
+    if (kept.length) out.push(`## Slide ${i + 1}\n${kept.join("\n")}`);
+  });
+  return out.join("\n\n");
 }
 
 const dataUrl = (text, mime = "text/markdown") =>
