@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "LMScrap",
+  "version": "0.9.0",
+  "description": "Pick a course and a range of sessions on BINUSMAYA, then download their materials.",
+  "permissions": ["storage", "downloads", "clipboardWrite"],
+  "host_permissions": [
+    "https://apim-bm7-prod-web.azure-api.net/*",
+    "https://*.blob.core.windows.net/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://lms.binus.ac.id/*"],
+      "js": ["capture.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://lms.binus.ac.id/*"],
+      "js": ["relay.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://claude.ai/*",
+        "https://chatgpt.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "js": ["autofill.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": { "default_popup": "popup.html", "default_title": "LMScrap" }
+}

@@ -1,0 +1,44 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+  body { width: 340px; font: 13px system-ui, sans-serif; margin: 0; padding: 10px; }
+  h3 { margin: 0 0 8px; }
+  select, button, input { font: inherit; }
+  select { width: 100%; padding: 5px; margin-bottom: 8px; }
+  .range { margin-bottom: 6px; }
+  .range input { width: 3.2em; }
+  #sessions { max-height: 150px; overflow: auto; border: 1px solid #ddd;
+              padding: 4px 6px; margin-bottom: 8px; }
+  #sessions label { display: block; padding: 1px 0; }
+  .opts { margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  .opts label { white-space: nowrap; }
+  #scrape { width: 100%; padding: 7px; cursor: pointer; }
+  #ai { margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; }
+  #ai button { padding: 6px 10px; margin: 2px 4px 0 0; cursor: pointer; }
+  #status { color: #555; margin: 8px 0 0; min-height: 16px; }
+  #log { font: 11px monospace; max-height: 110px; overflow: auto; margin: 6px 0 0;
+         white-space: pre-wrap; color: #333; }
+</style>
+<h3>LMScrap</h3>
+<select id="course"><option>Loading…</option></select>
+<div class="range">
+  Sessions <input id="from" type="number" min="1"> to <input id="to" type="number" min="1">
+  <button id="applyRange">Tick range</button>
+</div>
+<div id="sessions"></div>
+<div class="opts">
+  <label><input type="checkbox" id="optPptx" checked> Slides (.pptx)</label>
+  <label><input type="checkbox" id="optMd"> Slide text (.md)</label>
+  <label><input type="checkbox" id="optQuiz" checked> Quiz handoff</label>
+</div>
+<button id="scrape">Scrape selected</button>
+<div id="ai" hidden>
+  Make quiz in:
+  <button data-ai="claude">Claude</button>
+  <button data-ai="chatgpt">ChatGPT</button>
+  <button data-ai="gemini">Gemini</button>
+  <button id="dlHandoff" title="Save the combined material as a file">Save .md</button>
+</div>
+<div id="status"></div>
+<pre id="log"></pre>
+<script src="popup.js"></script>
