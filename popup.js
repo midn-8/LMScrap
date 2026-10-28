@@ -57,7 +57,9 @@ $("#scrape").onclick = async () => {
   const r = await send({ type: "scrape", courseName: courseTag, sessions: chosen, outputs });
   if (!r?.ok) return status("Error: " + r?.error);
   handoffText = r.handoffText || "";
-  status(`Done — ${r.files} file(s)${r.mds ? `, ${r.mds} .md` : ""}${handoffText ? ", quiz ready ↓" : ""}. See Downloads/LMScrap.`);
+  const fb = r.found ? Object.entries(r.found).map(([k, v]) => `${v}×${k}`).join(", ") : "";
+  status(`Done — ${r.files} file(s)${r.mds ? `, ${r.mds} .md` : ""}${handoffText ? ", quiz ready ↓" : ""}.`
+    + ((!r.files && !handoffText && fb) ? ` Found: ${fb}` : " See Downloads/LMScrap."));
   if (handoffText) {
     chrome.storage.local.set({ lastHandoff: { text: handoffText, course: courseTag } });
     $("#ai").hidden = false;

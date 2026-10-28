@@ -5,6 +5,9 @@
 importScripts("fflate.js"); // exposes self.fflate
 
 const BASE = "https://apim-bm7-prod-web.azure-api.net/func-bm7-course-prod";
+// Real files land on BINUS blob storage but are often typed "Link" (not "Document")
+// with a null type — so we decide by the URL's extension, not the resourceType.
+const DOC_EXT = /\.(pdf|pptx?|docx?|xlsx?|zip|txt)$/i;
 
 // Token is captured by capture.js (page hook) -> relay.js -> the "auth" message
 // below. Deterministic, unlike webRequest sniffing.
@@ -110,14 +113,20 @@ async function scrape({ courseName, sessions, outputs }, report) {
   const o = outputs || { pptx: true, md: false, quiz: true };
   let files = 0, skipped = 0, mds = 0;
   const handoff = [];
+  const found = {}; // what each session actually holds, for diagnostics
   for (const sess of sessions) {
     const d = await api(`/ClassSession/Session/${sess.id}/Resource/Student`);
     const topic = d?.topic || sess.title;
     const folder = `LMScrap/${safe(courseName)}/${String(sess.n).padStart(2, "0")}_${safe(topic)}`;
     for (const res of asList(d, "resources")) {
-      if (res.resourceType !== "Document" || !res.url) { skipped++; continue; }
+      const urlExt = extFromUrl(res.url);                              // ".pptx"
+      const fileType = (res.type || urlExt.replace(".", "")).toLowerCase(); // "pptx" / "pdf"
+      const isFile = !!res.url && (res.resourceType === "Document" || DOC_EXT.test(urlExt));
+      const kind = isFile ? `file(${fileType || "?"})` : (res.resourceType || "?");
+      found[kind] = (found[kind] || 0) + 1;
+      if (!isFile) { skipped++; continue; }
       const name = safe(res.name);
-      const ext = res.type ? `.${res.type}` : extFromUrl(res.url);
+      const ext = urlExt || (fileType ? `.${fileType}` : "");
 
       if (o.pptx) {
         try {
@@ -127,8 +136,8 @@ async function scrape({ courseName, sessions, outputs }, report) {
         } catch (e) { skipped++; report(`skip ${res.name}: ${e.message}`); }
       }
 
-      // Extract slide text only when a .md or the quiz handoff needs it.
-      if ((o.md || o.quiz) && (res.type || "").toLowerCase() === "pptx") {
+      // Extract slide text only when a .md or the quiz handoff needs it (pptx only).
+      if ((o.md || o.quiz) && fileType === "pptx") {
         try {
           const bytes = new Uint8Array(await (await fetch(res.url)).arrayBuffer());
           const body = pptxToMarkdown(bytes);
@@ -145,7 +154,7 @@ async function scrape({ courseName, sessions, outputs }, report) {
   const handoffText = (o.quiz && handoff.length)
     ? `# Quiz source — ${courseName}\n\n${QUIZ_PROMPT}\n\n---\n\n` + handoff.join("\n\n---\n\n")
     : null;
-  return { files, skipped, mds, handoffText };
+  return { files, skipped, mds, handoffText, found };
 }
 
 chrome.runtime.onMessage.addListener((msg, _s, respond) => {

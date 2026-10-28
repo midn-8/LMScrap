@@ -34,9 +34,13 @@ If courses don't load, reload your lms.binus.ac.id tab, then reopen the popup.
 
 ## Notes
 
-- Downloads real files (PPT/PDF/DOC…); videos, Zoom and external links are skipped.
+- Downloads real files (PPT/PDF/DOC…) by URL extension, whether the LMS types them
+  `Document` or `Link` (lecturers often mis-type uploaded files as links). SharePoint
+  pages (`.aspx`), videos and plain web links are skipped.
 - `.md` + quiz handoff cover `.pptx` only (slide text). `.pdf` files download but
-  aren't turned into `.md` yet.
+  aren't turned into `.md` / quiz yet.
+- When nothing downloads, the popup shows a `Found:` breakdown (e.g. `9×file(pptx),
+  5×file(pdf), 3×Link`) so you can see what a session actually holds.
 - `node test_bg.mjs` and `node test_pptx.mjs` run offline checks of the helpers
   and the slide-text extraction.
 - BINUS API field names can change; if a course or session is empty, inspect the
