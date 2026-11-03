@@ -140,6 +140,12 @@ async function scrape({ courseName, sessions, outputs }, report) {
       if ((o.md || o.quiz) && fileType === "pptx") {
         try {
           const bytes = new Uint8Array(await (await fetch(res.url)).arrayBuffer());
+          // A real .pptx is a ZIP ("PK"). Legacy .ppt, HTML error pages, or empty
+          // bodies are not — skip text for those instead of crashing the run.
+          if (bytes[0] !== 0x50 || bytes[1] !== 0x4b) {
+            report(`no text ${res.name}: not a .pptx (legacy .ppt or non-file)`);
+            continue;
+          }
           const body = pptxToMarkdown(bytes);
           if (o.md) {
             await chrome.downloads.download({ url: dataUrl(`# ${res.name}\n\n${body}`), filename: `${folder}/${name}.md` });
