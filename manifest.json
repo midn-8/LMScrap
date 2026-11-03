@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "LMScrap",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "Pick a course and a range of sessions on BINUSMAYA, then download their materials.",
   "permissions": ["storage", "downloads", "clipboardWrite"],
   "host_permissions": [

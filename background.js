@@ -139,11 +139,17 @@ async function scrape({ courseName, sessions, outputs }, report) {
       // Extract slide text only when a .md or the quiz handoff needs it (pptx only).
       if ((o.md || o.quiz) && fileType === "pptx") {
         try {
-          const bytes = new Uint8Array(await (await fetch(res.url)).arrayBuffer());
-          // A real .pptx is a ZIP ("PK"). Legacy .ppt, HTML error pages, or empty
-          // bodies are not — skip text for those instead of crashing the run.
+          const resp = await fetch(res.url);
+          const bytes = new Uint8Array(await resp.arrayBuffer());
+          // A real .pptx is a ZIP ("PK"). Report the actual format of anything else
+          // so we can tell legacy .ppt / PDF / HTML viewer pages apart.
           if (bytes[0] !== 0x50 || bytes[1] !== 0x4b) {
-            report(`no text ${res.name}: not a .pptx (legacy .ppt or non-file)`);
+            const sig = [...bytes.slice(0, 4)].map((b) => b.toString(16).padStart(2, "0")).join("");
+            const fmt = sig.startsWith("d0cf11e0") ? "legacy .ppt (binary)"
+              : sig.startsWith("25504446") ? "PDF mislabeled .pptx"
+              : bytes[0] === 0x3c ? "HTML (viewer/redirect, not the file)"
+              : bytes.length === 0 ? "empty response" : `unknown sig ${sig}`;
+            report(`no text ${res.name}: ${fmt} [http ${resp.status}]`);
             continue;
           }
           const body = pptxToMarkdown(bytes);
